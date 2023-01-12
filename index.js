@@ -2,6 +2,11 @@ import uuid4 from 'uuid4';
 import _ from "lodash";
 
 class BugsnagHelper {
+    /**
+     *
+     * @param {object} bugsnagClient - initialized bugsnag client
+     * @param {object} options - {hideIp:true - will hide user ip in notifications}
+     */
     constructor(bugsnagClient, options) {
         this._bugsnag = bugsnagClient;
         this._options = options;
@@ -11,6 +16,11 @@ class BugsnagHelper {
         this._httpResponse = null;
     }
 
+    /**
+     * Add metadata about current user when error happened
+     * @param {object} user - {firstName, lastName, name, email}
+     * @returns {BugsnagHelper}
+     */
     setUser(user) {
         this._user = {
             name: this._getUserName(user) || 'n/a',
@@ -42,10 +52,19 @@ class BugsnagHelper {
         return this;
     }
 
+    /**
+     * Send error to bugsnag
+     * @param {Error} error
+     */
     notify(error) {
         this._bugsnag.notify(error, this._onErrorCallback);
     }
 
+    /**
+     * Error callback will be called before send error notification
+     * @param {object} event - bugsnag internal data about error
+     * @private
+     */
     _onErrorCallback(event) {
         if(this._options.hideIp) {
             event.request.clientIp = '';
@@ -62,7 +81,6 @@ class BugsnagHelper {
         if(this._httpResponse) {
             event.addMetadata('SERVER RESPONSE', this._httpResponse);
         }
-
     }
 
     _getUserName(user) {
