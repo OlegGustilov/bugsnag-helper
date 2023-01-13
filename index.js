@@ -61,7 +61,7 @@ class BugsnagHelper {
      * @param {Error} error
      */
     notify(error) {
-        this._bugsnag.notify(error, this._onErrorCallback);
+        this._bugsnag.notify(error, this._onErrorCallback.bind(this));
     }
 
     /**
