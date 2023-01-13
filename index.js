@@ -22,6 +22,10 @@ class BugsnagHelper {
      * @returns {BugsnagHelper}
      */
     setUser(user) {
+        if(!user) {
+            return this;
+        }
+
         this._user = {
             name: this._getUserName(user) || 'n/a',
             email: user.email || 'n/a',
