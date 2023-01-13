@@ -59,6 +59,10 @@ class BugsnagHelper {
      * @param {object} requestInfo -  {url, baseURL}
      */
     setHttpRequestInfo(requestInfo) {
+        if(!requestInfo) {
+            return this;
+        }
+
         requestInfo = {
             url: requestInfo.url || 'n/a',
             website: requestInfo.baseURL || 'n/a'
@@ -72,6 +76,10 @@ class BugsnagHelper {
      * @param {object} responseBody - response body
      */
     setHttpResponseInfo(responseBody) {
+        if(!responseBody) {
+            return this;
+        }
+
         this._httpResponse = responseBody;
         return this;
     }
@@ -81,7 +89,13 @@ class BugsnagHelper {
      * @param {Error} error
      */
     notify(error) {
+       if(!this._httpRequest) {
+           // try get request info from "window" object
+           this.setHttpRequestInfo(this._getRequestInfo());
+       }
+
         Bugsnag.notify(error, this._onErrorCallback.bind(this));
+        this._cleanup();
     }
 
     /**
@@ -144,6 +158,25 @@ class BugsnagHelper {
         }
 
         return (user.firstName) ? `${user.firstName} ${user.lastName}` : user.name;
+    }
+
+    _getRequestInfo() {
+        if(!window) {
+            return null;
+        }
+
+        const document = window.document;
+        const location = (document) ? document.location : null;
+        return {
+            baseURL: window.origin || null,
+            url: (location) ? location.href : null
+        };
+    }
+
+    _cleanup() {
+        this._user = null;
+        this._httpRequest = null;
+        this._httpResponse = null;
     }
 }
 
