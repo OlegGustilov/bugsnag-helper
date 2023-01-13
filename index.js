@@ -26,7 +26,8 @@ class BugsnagHelper {
         const options = _.merge({},
             {
                 apiKey: this._apiKey,
-                plugins: plugins
+                plugins: plugins,
+                maxPageLoadTime: 2000, // can be overridden by options
             }, this._options);
         Bugsnag.start(options);
     }
@@ -84,13 +85,40 @@ class BugsnagHelper {
     }
 
     /**
+     * Starts timer to track page load time and notify when it above threshold.
+     */
+    startTrackPageLoadTime() {
+        setTimeout(this._trackPageLoadTime.bind(this), 3000);
+    }
+
+    _trackPageLoadTime() {
+        if(!window || window.performance) {
+            console.log('Bugsnag: Can not start tack page load time.');
+            return;
+        }
+
+        const perfEntries = window.performance.getEntriesByType("navigation");
+
+        if(perfEntries && perfEntries.length > 0) {
+            const p = perfEntries[0];
+            if(p.duration) {
+                if(p.duration > this._options.maxPageLoadTime) {
+                    console.log('Bugsnag: The page load time is slow: ' + p.duration);
+                    this.notify(new Error('Slow page load: >' + this._options.maxPageLoadTime + 'ms.'));
+                }
+                console.log('Bugsnag: Page load time: ' + p.duration);
+            }
+        }
+    }
+
+    /**
      * Error callback will be called before send error notification
      * @param {object} event - bugsnag internal data about error
      * @private
      */
     _onErrorCallback(event) {
         if(!this._options.collectUserIp) {
-            event.request.clientIp = '';
+            event.request.clientIp = 'n/a';
         }
 
         if(this._user) {
