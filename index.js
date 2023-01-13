@@ -1,19 +1,38 @@
 import uuid4 from 'uuid4';
 import _ from "lodash";
+import Bugsnag from "@bugsnag/js";
+
 
 class BugsnagHelper {
     /**
      *
-     * @param {object} bugsnagClient - initialized bugsnag client
-     * @param {object} options - {hideIp:true - will hide user ip in notifications}
+     * @param {string} apiKey
+     * @param {object} options
      */
-    constructor(bugsnagClient, options) {
-        this._bugsnag = bugsnagClient;
+    constructor(apiKey, options) {
+        this._apiKey = apiKey;
         this._options = options;
 
         this._user = null;
         this._httpRequest = null;
         this._httpResponse = null;
+    }
+
+    /**
+     * Start bugsnag client using plugins and options
+     * @param {[object]} plugins
+     */
+    start(plugins = []) {
+        const options = _.merge({},
+            {
+                apiKey: this._apiKey,
+                plugins: plugins
+            }, this._options);
+        Bugsnag.start(options);
+    }
+
+    getClient() {
+        return Bugsnag;
     }
 
     /**
@@ -61,7 +80,7 @@ class BugsnagHelper {
      * @param {Error} error
      */
     notify(error) {
-        this._bugsnag.notify(error, this._onErrorCallback.bind(this));
+        Bugsnag.notify(error, this._onErrorCallback.bind(this));
     }
 
     /**
@@ -70,7 +89,7 @@ class BugsnagHelper {
      * @private
      */
     _onErrorCallback(event) {
-        if(this._options.hideIp) {
+        if(!this._options.collectUserIp) {
             event.request.clientIp = '';
         }
 
