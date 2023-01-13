@@ -92,7 +92,7 @@ class BugsnagHelper {
     }
 
     _trackPageLoadTime() {
-        if(!window || window.performance) {
+        if(!window || !window.performance) {
             console.log('Bugsnag: Can not start tack page load time.');
             return;
         }
